@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador TMDB HTML</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --primary: #00ffc3;
+      --bg: #121212;
+      --text: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h1 {
+      color: var(--primary);
+      text-align: center;
+      font-size: 2rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    textarea {
+      height: 250px;
+      resize: vertical;
+    }
+
+    button {
+      background-color: var(--primary);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #00e6af;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      textarea {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎬 Generador TMDB HTML</h1>
+
+    <label for="type">Tipo:</label>
+    <select id="type">
+      <option value="movie">Película</option>
+      <option value="tv">Serie</option>
+    </select>
+
+    <label for="idInput">ID de TMDB:</label>
+    <input type="text" id="idInput" placeholder="Ej. 550 para Fight Club">
+
+    <label for="urlInput">URL de redirección:</label>
+    <input type="text" id="urlInput" placeholder="Ej. /peliculas/fight-club.html">
+
+    <button onclick="generarHTML()">Generar HTML</button>
+
+    <textarea id="output" readonly placeholder="Aquí se generará el código HTML..."></textarea>
+    <button onclick="copiarCodigo()">Copiar código</button>
+  </div>
+
+  <script>
+    const API_KEY = "1d79b0abc34e3411aed8ee793526693d";
+    const languaje = "es";
+
+    async function generarHTML() {
+      const tipo = document.getElementById('type').value;
+      const id = document.getElementById('idInput').value.trim();
+      const url = document.getElementById('urlInput').value.trim();
+      const output = document.getElementById('output');
+
+      if (!id || !url) {
+        alert("Por favor, completa todos los campos.");
+        return;
+      }
+
+      const apiURL = `https://api.themoviedb.org/3/${tipo}/${id}?api_key=${API_KEY}&language=${languaje}`;
+
+      try {
+        const res = await fetch(apiURL);
+        const datos = await res.json();
+
+        let html = "";
+
+        if (tipo === "movie") {
+          html = `
+<!-- ${datos.title}-->
+<li>
+  <a href="${url}" tabindex="0" class="block outline-none focus:ring-2 ring-yellow-400 rounded">
+    <img src="https://image.tmdb.org/t/p/w500/${datos.poster_path}" alt="poster" class="w-full aspect-[2/3] rounded-lg object-cover mb-2 sm:mb-0">
+    <span class="hidden">${datos.title} ${datos.release_date?.slice(0,4) || ""}</span>
+    <span class="hidden">${datos.overview}</span>
+  </a>
+</li>
+<!--FIN-->`.trim();
+        } else {
+          html = `
+<!-- ${datos.name}-->
+<li>
+  <a href="${url}" tabindex="0" class="block outline-none focus:ring-2 ring-yellow-400 rounded">
+    <img src="https://image.tmdb.org/t/p/w500/${datos.poster_path}" alt="poster" class="w-full aspect-[2/3] rounded-lg object-cover mb-2 sm:mb-0">
+    <span class="hidden">${datos.name} ${datos.first_air_date?.slice(0,4) || ""}</span>
+    <span class="hidden">${datos.overview}</span>
+  </a>
+</li>
+<!--FIN-->`.trim();
+        }
+
+        output.value = html;
+
+      } catch (err) {
+        output.value = "❌ Error al obtener los datos.";
+        console.error(err);
+      }
+    }
+
+    function copiarCodigo() {
+      const output = document.getElementById('output');
+      output.select();
+      document.execCommand("copy");
+      alert("¡Código copiado!");
+    }
+  </script>
+</body>
+</html>
